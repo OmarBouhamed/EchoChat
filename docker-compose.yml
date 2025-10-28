@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build: .
+    container_name: supportgpt-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - supportgpt-network
+
+networks:
+  supportgpt-network:
+    driver: bridge
