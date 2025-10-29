@@ -9,13 +9,61 @@ services:
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://supportgpt:supportgpt_password@postgres:5432/supportgpt_db
+      - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./src:/app/src
       - ./tests:/app/tests
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - supportgpt-network
 
+    # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: supportgpt-postgres
+    environment:
+      POSTGRES_USER: supportgpt
+      POSTGRES_PASSWORD: supportgpt_password
+      POSTGRES_DB: supportgpt_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supportgpt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - supportgpt-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: supportgpt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - supportgpt-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  
 networks:
   supportgpt-network:
     driver: bridge

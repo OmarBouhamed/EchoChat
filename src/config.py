@@ -13,6 +13,18 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     
+        # Database
+    database_url: str = "postgresql+asyncpg://supportgpt:supportgpt_password@postgres:5432/supportgpt_db"
+    database_echo: bool = True
+    
+    # Redis
+    redis_url: str = "redis://redis:6379/0"
+    redis_ttl: int = 3600  # 1 hour
+    
+    # Rate Limiting
+    rate_limit_requests: int = 100
+    rate_limit_period: int = 60  # seconds
+    
     class Config:
         env_file = ".env"
         case_sensitive = False
